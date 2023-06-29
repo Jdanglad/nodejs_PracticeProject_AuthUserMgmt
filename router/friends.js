@@ -11,7 +11,7 @@ let friends = {
 
 // GET request: Retrieve all friends
 router.get("/", (req, res) => {
-    res.send(JSON,stringify(friends, null, 4));
+    res.send(friends);
 });
 
 // GET by specific ID request: Retrieve a single friend with email ID
@@ -37,15 +37,37 @@ router.post("/", (req,res) => {
 // PUT request: Update the details of a friend with email id
 router.put("/:email", (req, res) => {
     const email = req.params.email;
-    if friend = firends[email]
-    res.send("Yet to be implemented");
+    let friend = friends[email]
+    if (friend) {                                        //cheks if friend exist.
+       let firstName = req.body.firstName;
+       let lastName = req.body.lastName;
+       let DOB = req.body.DOB;
+
+       if (firstName) {
+           friend["firstName"] = firstName
+       }
+       if (lastName) {
+           friend["lastName"] = lastName
+       }
+       if (DOB) {
+           friend["DOB"] = DOB
+       }
+       friends[email] = friend;
+       res.send(`Friend with email ${email} updated.`);
+    }
+    else {
+        res.send("Unable to find friend!");
+    }
 });
 
 
 // DELETE request: Delete a friend by email id
 router.delete("/:email", (req, res) => {
-  // Update the code here
-    res.send("Yet to be implemented")//This line is to be replaced with actual return value
+    const email = req.params.email;
+     if (email) [
+         delete friends[email]
+     ]
+    res.send(`Friend with the email ${email} was deleted`);
 });
 
 module.exports=router;
