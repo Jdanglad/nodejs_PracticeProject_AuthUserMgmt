@@ -5,47 +5,51 @@ const routes = require('./router/friends.js')
 
 let users = []
 
-const doesExist = (username)=>{
-  let userswithsamename = users.filter((user)=>{
-    return user.username === username
-  });
-  if(userswithsamename.length > 0){
-    return true;
-  } else {
-    return false;
-  }
+const doesExist = (username) => {                           //Cheks if the user already exist
+    let userswithsamename = users.filter((user)=>{
+        return user.username === username
+    });
+    if(userswithsamename.length > 0){
+        return true;
+    } else {
+        return false;
+    }
 }
 
-const authenticatedUser = (username,password)=>{
-  let validusers = users.filter((user)=>{
-    return (user.username === username && user.password === password)
-  });
-  if(validusers.length > 0){
-    return true;
-  } else {
-    return false;
-  }
+const authenticatedUser = (username,password) => {         //Validates the username & credential
+
+    let validusers = users.filter((user)=>{
+        return (user.username === username && user.password === password)
+    });
+
+    if(validusers.length > 0){
+        return true;
+    } 
+    else {
+        return false;
+    }
 }
 
 const app = express();
-
+    //User defined secret middleware, to intercept the requests before processing them.
 app.use(session({secret:"fingerpint"},resave=true,saveUninitialized=true));
 
 app.use(express.json());
 
-app.use("/friends", function auth(req,res,next){
-   if(req.session.authorization) {
+app.use("/friends", function auth(req,res,next){           //endpoint
+   if(req.session.authorization) {                         //Varification of the user credentials and session authentication on each of the "/friend" endpoint.
        token = req.session.authorization['accessToken'];
        jwt.verify(token, "access",(err,user)=>{
            if(!err){
                req.user = user;
                next();
            }
-           else{
+           else {
                return res.status(403).json({message: "User not authenticated"})
            }
         });
-    } else {
+    } 
+    else {                                                //Error given for not being logged in.
         return res.status(403).json({message: "User not logged in"})
     }
 });
@@ -54,22 +58,23 @@ app.post("/login", (req,res) => {
   const username = req.body.username;
   const password = req.body.password;
 
-  if (!username || !password) {
-      return res.status(404).json({message: "Error logging in"});
-  }
+    if (!username || !password) {                          //Error for when credentials are not provided
+        return res.status(404).json({message: "Error logging in"});
+    }
 
-  if (authenticatedUser(username,password)) {
-    let accessToken = jwt.sign({
-      data: password
-    }, 'access', { expiresIn: 60 * 60 });
+    if (authenticatedUser(username,password)) {            //Creat a JWT for 1hr access
+        let accessToken = jwt.sign({
+            data: password
+        }, 'access', { expiresIn: 60 * 60 });
 
-    req.session.authorization = {
-      accessToken,username
-  }
-  return res.status(200).send("User successfully logged in");
-  } else {
-    return res.status(208).json({message: "Invalid Login. Check username and password"});
-  }
+        req.session.authorization = {
+            accessToken,username
+        }
+        return res.status(200).send("User successfully logged in");
+    } 
+    else {                                                //Give error when the credential are incorrect
+        return res.status(208).json({message: "Invalid Login. Check username and password"});
+    }
 });
 
 app.post("/register", (req,res) => {
